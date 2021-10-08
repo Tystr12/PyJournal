@@ -45,23 +45,23 @@ def change_password(password: str, new_password: str) -> None:
         print("password was not changed.. try again..")
 
 
-def create_new_entry(title: str, content: str, date: str) -> None:
+def create_new_entry(title: str, content: str, date: str):
     '''Creates a new diary entry and saves it to the text file.'''
     text_file = open("something.txt", "a")
-    text_file.write
-    ('------------------------------------\n' +
-     f'{title}\n' +
-     f' date: {date}\n' +
-     f'{content}\n' +
-     '------------------------------------\n')
+    text_file.write('------------------------------------\n')
+    text_file.write(f'{title}\n')
+    text_file.write(f' date: {date}\n')
+    text_file.write(f'{content}\n')
+    text_file.write('------------------------------------\n')
     text_file.close()
 
 
-def read_the_diary() -> None:
+def read_the_diary():
     '''Loops over the entries in the diary and displays prints them to the console.'''
     text_file = open("something.txt", "r")
     data = text_file.read().splitlines()
-    print(data)
+    for line in data:
+        print(line)
 
 
 def save_entry_num() -> None:
