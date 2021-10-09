@@ -8,7 +8,15 @@ import os
 load_dotenv()
 my_password = os.getenv('TOKEN')
 
-my_name = 'Ty'
+name = os.getenv("NAME")
+
+
+def change_name() -> None:
+    '''Changes the name in the .env file (if i can figure this out)'''
+    password = input('Enter password to change your name')
+    if(check_password(password)):
+        new_name = input('Enter your name:')
+        os.environ["NAME"] = new_name
 
 
 def show_options() -> None:
@@ -21,7 +29,7 @@ def show_options() -> None:
 def print_starting_message() -> None:
     '''Prints starting message once logged in to the program with the user's name.'''
     print('**************************\n' +
-          f"-------{my_name}'s Journal------- \n" +
+          f"-------{name}'s Journal------- \n" +
           '**************************\n')
 
 
@@ -108,6 +116,9 @@ while(running == True):
         password = input('enter current password')
         new_password = input('enter new password')
         change_password(password, new_password)
+        show_options()
+    if choice == 'change name':
+        change_name()
         show_options()
     if choice == 'exit':
         running = False
