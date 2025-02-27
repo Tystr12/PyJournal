@@ -90,7 +90,7 @@ def show_num_of_entrys() -> None:
     print(f'Number of entries: {data}')
 
 
-enter_password = input('Whats the password?')
+enter_password = input('Whats the password? ')
 if check_password(enter_password) == True:
     print_starting_message()
     running = True
@@ -101,14 +101,14 @@ else:
 
 while(running == True):
     choice = input()
-    if choice == 'new entry':
+    if choice == 'new entry' or choice == '1':
         title = input('Title?\n')
         content = input('Write what you want to log\n')
         date = input('What is the date?\n')
         create_new_entry(title, content, date)
         save_entry_num()
         show_options()
-    if choice == 'read prev':
+    if choice == 'read prev' or choice == '2':
         read_the_diary()
         show_num_of_entrys()
         show_options()
@@ -120,5 +120,6 @@ while(running == True):
     if choice == 'change name':
         change_name()
         show_options()
-    if choice == 'exit':
+    if choice == 'exit' or choice == '3':
+        print("Closing journal...")
         running = False
