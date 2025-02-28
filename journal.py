@@ -1,154 +1,214 @@
-# Program that I can use as a journal
-# Password protected
-# Commit comment to test commits
-
-from dotenv import load_dotenv, set_key
-import getpass
 import os
+import getpass
+from dotenv import load_dotenv, set_key
 
+# Path to your .env file (adjust as needed)
 DOTENV_PATH = r"C:\Users\Megam\Documents\realpython\running_scripts\j\.env"
-load_dotenv() # load environment variables
+
+# Load environment variables
+load_dotenv(DOTENV_PATH)
+
+# Retrieve variables from .env (if they exist)
 my_password = os.getenv('TOKEN')
 name = os.getenv("NAME")
 
+
 def update_env_variable(key: str, value: str):
     """
-    Update the environment variable in the running process AND
-    persist it back into the .env file.
+    Update an environment variable both in memory and in the .env file.
     """
-    # Update in-memory environment (so other code can see the change right away)
     os.environ[key] = value
-    
-    # Persist the change back to the .env file
     set_key(DOTENV_PATH, key, value)
 
 
-def show_all_options():
-    show_options()
-    print('5) -----Change password-----')
-    print('6) -----Change name-----')
-
-def change_name() -> None:
-    '''Changes the name in the .env file (if i can figure this out)'''
-    password = getpass.getpass("Enter your password: ")
-    if(check_password(password)):
-        new_name = input('Enter your name: ')
-        update_env_variable("NAME", new_name)
+def check_password(password: str) -> bool:
+    """
+    Check if the user-inputted password matches the one stored in .env.
+    """
+    if password == my_password:
+        print('Correct Password! Access Granted!')
+        return True
+    else:
+        print('Incorrect password!')
+        return False
 
 
 def show_options() -> None:
-    '''Prints the options the user has once logged in to the diary.'''
+    """
+    Print the options available to the user once logged in.
+    """
     print('1) -----Enter new log entry-----')
     print('2) -----Read previous logs-----')
     print('3) -----Exit-----')
     print('4) -----Help-----')
 
 
+def show_all_options() -> None:
+    """
+    Show the full options list (including changing name/password).
+    """
+    show_options()
+    print('5) -----Change password-----')
+    print('6) -----Change name-----')
+
 
 def print_starting_message() -> None:
-    '''Prints starting message once logged in to the program with the user's name.'''
-    print('**************************\n' +
-          f"-------{name}'s Journal------- \n" +
-          '**************************\n')
-
-
-def check_password(password: str) -> bool:
-    '''Checks if the password given in the parameter is the same that is saved in the .env file returns a boolean.'''
-
-    if password == my_password:
-        print('Correct Password! Access Granted!')
-        return True
-    else:
-        return False
-
-
-def change_password() -> None:
-    '''Changes the current password if the user can verify the current password.'''
-    current: str = getpass.getpass("Enter your current password: ")
-    if(check_password(current) == True):
-        new_password: str = getpass.getpass("Enter your new password: ")
-        again: str = getpass.getpass("Enter your new password again: ")
-        if new_password == again:
-            update_env_variable("TOKEN", new_password)
-            print("password is now changed!")
-        else:
-            print('passwords did not match! Try again.')
-    else:
-        print("password was not changed.. try again..")
+    """
+    Print a welcome banner showing the current user’s name from .env.
+    """
+    # Fallback if NAME isn't set
+    display_name = name if name else "User"
+    print('**************************')
+    print(f"-------{display_name}'s Journal-------")
+    print('**************************\n')
 
 
 def create_new_entry(title: str, content: str, date: str):
-    '''Creates a new diary entry and saves it to the text file.'''
-    text_file = open("something.txt", "a")
-    text_file.write('------------------------------------\n')
-    text_file.write(f'{title}\n')
-    text_file.write(f' date: {date}\n')
-    text_file.write(f'{content}\n')
-    text_file.write('------------------------------------\n')
-    text_file.close()
+    """
+    Create a new journal entry and append it to the 'something.txt' file.
+    """
+    # Safely open the file with a 'with' statement
+    with open("something.txt", "a", encoding="utf-8") as text_file:
+        text_file.write('------------------------------------\n')
+        text_file.write(f'{title}\n')
+        text_file.write(f'date: {date}\n')
+        text_file.write(f'{content}\n')
+        text_file.write('------------------------------------\n')
+    print("New entry saved!")
 
 
 def read_the_diary():
-    '''Loops over the entries in the diary and displays prints them to the console.'''
-    text_file = open("something.txt", "r")
-    data = text_file.read().splitlines()
-    for line in data:
-        print(line)
+    """
+    Print out all entries from 'something.txt'.
+    """
+    if not os.path.isfile("something.txt"):
+        print("No diary entries yet. 'something.txt' not found.")
+        return
+
+    with open("something.txt", "r", encoding="utf-8") as text_file:
+        data = text_file.read().splitlines()
+        for line in data:
+            print(line)
 
 
 def save_entry_num() -> None:
-    '''Increments the amount of entries that are in the diary when a new entry is created.'''
-    text_file = open("saves.txt", "r")
-    data = text_file.read()
-    current_num = int(data[0])
-    text_file = open("saves.txt", "w")
-    res = current_num + 1
-    text_file.write(str(res))
-    text_file.close()
+    """
+    Increments the count of entries stored in 'saves.txt' (used for tracking entry number).
+    """
+    # If the saves.txt file doesn't exist, create it with an initial '0'.
+    if not os.path.isfile("saves.txt"):
+        with open("saves.txt", "w") as f:
+            f.write("0")
+
+    with open("saves.txt", "r") as text_file:
+        data = text_file.read().strip()
+
+        # Safely convert to int (fallback to 0 if empty)
+        try:
+            current_num = int(data)
+        except ValueError:
+            current_num = 0
+
+    with open("saves.txt", "w") as text_file:
+        res = current_num + 1
+        text_file.write(str(res))
 
 
-def show_num_of_entrys() -> None:
-    '''Prints the amount of entries that are in the diary.'''
-    text_file = open("saves.txt", "r")
-    data = text_file.read()
-    print(f'Number of entries: {data}')
+def show_num_of_entries() -> None:
+    """
+    Print the number of entries stored in 'saves.txt'.
+    """
+    if not os.path.isfile("saves.txt"):
+        print("Number of entries: 0")
+        return
+
+    with open("saves.txt", "r") as text_file:
+        data = text_file.read().strip()
+        print(f'Number of entries: {data or "0"}')
 
 
-enter_password = getpass.getpass("Enter your password: ")
-if check_password(enter_password) == True:
+def change_name() -> None:
+    """
+    Prompt the user for current password, then change the NAME variable in .env.
+    """
+    password = getpass.getpass("Enter your password: ")
+    if check_password(password):
+        new_name = input('Enter your new name: ')
+        update_env_variable("NAME", new_name)
+        print(f"Name changed to: {new_name}")
+    else:
+        print("Name not changed.")
+
+
+def change_password() -> None:
+    """
+    Prompt user for current password, confirm, then change the TOKEN variable in .env.
+    """
+    current = getpass.getpass("Enter your current password: ")
+    if check_password(current):
+        new_password = getpass.getpass("Enter your new password: ")
+        again = getpass.getpass("Enter your new password again: ")
+        if new_password == again:
+            update_env_variable("TOKEN", new_password)
+            print("Password is now changed!")
+        else:
+            print("Passwords did not match! Try again.")
+    else:
+        print("Password not changed.")
+
+
+def main():
+    """
+    Main function: prompt for password, then let the user choose what to do.
+    """
+    # If there's no TOKEN in .env, warn user or prompt them to create one
+    if not my_password:
+        print("No TOKEN set in .env! Please set TOKEN=somepassword in your .env file.")
+        return
+
+    password_attempt = getpass.getpass("Enter your password: ")
+    if not check_password(password_attempt):
+        return  # Exit if incorrect
+
     print_starting_message()
     running = True
     show_options()
     print('What would you like to do?')
-else:
-    print('Incorrect password. Try again...')
 
-while(running == True):
-    choice = input()
-    if choice == 'new entry' or choice == '1':
-        title = input('Title?\n')
-        content = input('Write what you want to log\n')
-        date = input('What is the date?\n')
-        create_new_entry(title, content, date)
-        save_entry_num()
-        show_options()
-    if choice == 'read prev' or choice == '2':
-        read_the_diary()
-        show_num_of_entrys()
-        show_options()
-    if choice == 'change password' == '5':
-        password = input('enter current password')
-        new_password = input('enter new password')
-        change_password(password, new_password)
-        show_options()
-    if choice == 'change name':
-        change_name()
-        show_options()
-    if choice == 'exit' or choice == '3':
-        print("Closing journal...")
-        running = False
-    if choice == 'help' or choice == '4':
-        show_all_options()
-    if choice == 'change name' or choice == '6':
-        change_name()
-        show_options()
+    while running:
+        choice = input("> ").strip().lower()
+
+        if choice in ('1', 'new entry'):
+            title = input('Title?\n')
+            content = input('Write what you want to log\n')
+            date = input('What is the date?\n')
+            create_new_entry(title, content, date)
+            save_entry_num()
+            show_options()
+
+        elif choice in ('2', 'read prev'):
+            read_the_diary()
+            show_num_of_entries()
+            show_options()
+
+        elif choice in ('3', 'exit'):
+            print("Closing journal...")
+            running = False
+
+        elif choice in ('4', 'help'):
+            show_all_options()
+
+        elif choice in ('5', 'change password'):
+            change_password()
+            show_options()
+
+        elif choice in ('6', 'change name'):
+            change_name()
+            show_options()
+
+        else:
+            print("Invalid choice. Try again or type 'help' for options.")
+
+
+if __name__ == "__main__":
+    main()
