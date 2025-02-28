@@ -21,3 +21,4 @@ Use requirements.txt to install all dependencies to run PyJournal.
 
 '''python
 pip install -r requirements.txt
+'''
