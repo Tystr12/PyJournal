@@ -1,4 +1,4 @@
-# Terminal Journal
+# PyJournal
 
 A lightweight, password-protected, **terminal-based journaling application** written in Python. Perfect for quickly jotting down personal notes or diaries securely in a local environment.
 
@@ -15,6 +15,9 @@ A lightweight, password-protected, **terminal-based journaling application** wri
 
 1. **Python 3.7+** (recommended)
 2. **python-dotenv** for reading and writing environment variables.  
-   Install with:
-   ```bash
-   pip install python-dotenv
+3. **bcrypt** for password hashing increasing security. 
+
+Use requirements.txt to install all dependencies to run PyJournal.
+
+'''python
+pip install -r requirements.txt
