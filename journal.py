@@ -2,21 +2,38 @@
 # Password protected
 # Commit comment to test commits
 
-from dotenv import load_dotenv
+from dotenv import load_dotenv, set_key
+import getpass
 import os
 
-load_dotenv()
+DOTENV_PATH = r"C:\Users\Megam\Documents\realpython\running_scripts\j\.env"
+load_dotenv() # load environment variables
 my_password = os.getenv('TOKEN')
-
 name = os.getenv("NAME")
 
+def update_env_variable(key: str, value: str):
+    """
+    Update the environment variable in the running process AND
+    persist it back into the .env file.
+    """
+    # Update in-memory environment (so other code can see the change right away)
+    os.environ[key] = value
+    
+    # Persist the change back to the .env file
+    set_key(DOTENV_PATH, key, value)
+
+
+def show_all_options():
+    show_options()
+    print('5) -----Change password-----')
+    print('6) -----Change name-----')
 
 def change_name() -> None:
     '''Changes the name in the .env file (if i can figure this out)'''
-    password = input('Enter password to change your name')
+    password = getpass.getpass("Enter your password: ")
     if(check_password(password)):
-        new_name = input('Enter your name:')
-        os.environ["NAME"] = new_name
+        new_name = input('Enter your name: ')
+        update_env_variable("NAME", new_name)
 
 
 def show_options() -> None:
@@ -24,6 +41,8 @@ def show_options() -> None:
     print('1) -----Enter new log entry-----')
     print('2) -----Read previous logs-----')
     print('3) -----Exit-----')
+    print('4) -----Help-----')
+
 
 
 def print_starting_message() -> None:
@@ -37,18 +56,23 @@ def check_password(password: str) -> bool:
     '''Checks if the password given in the parameter is the same that is saved in the .env file returns a boolean.'''
 
     if password == my_password:
-        return True
         print('Correct Password! Access Granted!')
+        return True
     else:
         return False
 
 
-def change_password(password: str, new_password: str) -> None:
+def change_password() -> None:
     '''Changes the current password if the user can verify the current password.'''
-
-    if(check_password(password) == True):
-        my_password = new_password
-        print("password is now changed!")
+    current: str = getpass.getpass("Enter your current password: ")
+    if(check_password(current) == True):
+        new_password: str = getpass.getpass("Enter your new password: ")
+        again: str = getpass.getpass("Enter your new password again: ")
+        if new_password == again:
+            update_env_variable("TOKEN", new_password)
+            print("password is now changed!")
+        else:
+            print('passwords did not match! Try again.')
     else:
         print("password was not changed.. try again..")
 
@@ -90,7 +114,7 @@ def show_num_of_entrys() -> None:
     print(f'Number of entries: {data}')
 
 
-enter_password = input('Whats the password? ')
+enter_password = getpass.getpass("Enter your password: ")
 if check_password(enter_password) == True:
     print_starting_message()
     running = True
@@ -112,7 +136,7 @@ while(running == True):
         read_the_diary()
         show_num_of_entrys()
         show_options()
-    if choice == 'change password':
+    if choice == 'change password' == '5':
         password = input('enter current password')
         new_password = input('enter new password')
         change_password(password, new_password)
@@ -123,3 +147,8 @@ while(running == True):
     if choice == 'exit' or choice == '3':
         print("Closing journal...")
         running = False
+    if choice == 'help' or choice == '4':
+        show_all_options()
+    if choice == 'change name' or choice == '6':
+        change_name()
+        show_options()
