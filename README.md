@@ -16,6 +16,7 @@ A lightweight, password-protected, **terminal-based journaling application** wri
 1. **Python 3.7+** (recommended)
 2. **python-dotenv** for reading and writing environment variables.  
 3. **bcrypt** for password hashing increasing security. 
+4. **cryptography** for secure storage of journal entries
 
 Use requirements.txt to install all dependencies to run PyJournal.
 

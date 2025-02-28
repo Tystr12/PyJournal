@@ -1,13 +1,40 @@
+'''
+    Written by Ty Strong
+    Last updated: 28.02.2025
+'''
+
 import os
 import getpass
 from dotenv import load_dotenv, set_key
 import bcrypt
+from rich.console import Console
+from cryptography.fernet import Fernet
 
 DOTENV_PATH = r"C:\Users\Megam\Documents\realpython\running_scripts\j\.env"
 load_dotenv(DOTENV_PATH)
 
+console = Console()
 my_password = os.getenv('TOKEN')
 name = os.getenv('NAME')
+SECRET_KEY = os.getenv("SECRET_KEY")
+
+if not SECRET_KEY:
+    raise ValueError("SECRET_KEY is missing! Please set it in .env.")
+
+cipher = Fernet(SECRET_KEY.encode())
+
+def encrypt_message(message: str) -> str:
+    """Encrypts a message using Fernet encryption."""
+    encrypted_text = cipher.encrypt(message.encode())
+    return encrypted_text.decode()  # Convert bytes to string for storage
+
+def decrypt_message(encrypted_message: str) -> str:
+    """Decrypts an encrypted message using Fernet encryption."""
+    decrypted_text = cipher.decrypt(encrypted_message.encode())
+    return decrypted_text.decode()
+
+def print(output: str) -> None:
+    console.print(output)
 
 def update_env_variable(key: str, value: str):
     os.environ[key] = value
@@ -29,7 +56,8 @@ def change_password():
     Prompts for current password, and if verified, sets a new password
     hashed with passlib's bcrypt.
     """
-    current = getpass.getpass("Enter your current password: ")
+    print("[bold red]Enter your current password: [/bold red]")
+    current = getpass.getpass()
     if check_password(current):
         new_password = getpass.getpass("Enter your new password: ")
         again = getpass.getpass("Enter your new password again: ")
@@ -47,11 +75,12 @@ def change_name():
     """
     Prompt the user for current password, then change the NAME variable in .env.
     """
-    password = getpass.getpass("Enter your password: ")
+    print("[bold red]Enter your password: [/bold red]")
+    password = getpass.getpass()
     if check_password(password):
         new_name = input('Enter your new name: ')
         update_env_variable("NAME", new_name)
-        print(f"Name changed to: {new_name}")
+        print(f"[bold green]Name changed to: {new_name}[/bold green]")
     else:
         print("Name not changed.")
 
@@ -73,23 +102,41 @@ def show_all_options():
     print('6) -----Change name-----')
 
 def create_new_entry(title: str, content: str, date: str):
+    encrypted_title = encrypt_message(title)
+    encrypted_content = encrypt_message(content)
+    encrypted_date = encrypt_message(date)
+
     with open("something.txt", "a", encoding="utf-8") as text_file:
         text_file.write('------------------------------------\n')
-        text_file.write(f'{title}\n')
-        text_file.write(f'date: {date}\n')
-        text_file.write(f'{content}\n')
+        text_file.write(f'Title: {encrypted_title}\n')
+        text_file.write(f'Date: {encrypted_date}\n')
+        text_file.write(f'Content: {encrypted_content}\n')
         text_file.write('------------------------------------\n')
-    print("New entry saved!")
+    print("[bold green]New entry saved![/bold green]")
 
 def read_the_diary():
+    """Reads and decrypts all journal entries."""
     if not os.path.isfile("something.txt"):
-        print("No diary entries yet. 'something.txt' not found.")
+        print("No journal entries found.")
         return
 
     with open("something.txt", "r", encoding="utf-8") as text_file:
         data = text_file.read().splitlines()
-        for line in data:
-            print(line)
+
+    decrypted_entries = []
+    for line in data:
+        if line.startswith("Title: "):
+            decrypted_entries.append("Title: " + decrypt_message(line[7:]))
+        elif line.startswith("Date: "):
+            decrypted_entries.append("Date: " + decrypt_message(line[6:]))
+        elif line.startswith("Content: "):
+            decrypted_entries.append("Content: " + decrypt_message(line[9:]))
+        else:
+            decrypted_entries.append(line)  # Keep dividers as they are
+
+    # Print decrypted entries
+    for line in decrypted_entries:
+        print(line)
 
 def save_entry_num():
     if not os.path.isfile("saves.txt"):
@@ -121,7 +168,8 @@ def main():
         print("No TOKEN set in .env! Please set TOKEN in your .env file (hashed or blank).")
         return
 
-    password_attempt = getpass.getpass("Enter your password: ")
+    print("[bold red]Enter your password: [/bold red]")
+    password_attempt = getpass.getpass()
     if not check_password(password_attempt):
         return  # Exit if incorrect
 
@@ -147,7 +195,7 @@ def main():
             show_options()
 
         elif choice in ('3', 'exit'):
-            print("Closing journal...")
+            print("[bold blue]Closing journal...[/bold blue]")
             running = False
 
         elif choice in ('4', 'help'):
