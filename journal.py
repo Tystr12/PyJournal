@@ -1,133 +1,49 @@
 import os
 import getpass
 from dotenv import load_dotenv, set_key
+import bcrypt
 
-# Path to your .env file (adjust as needed)
 DOTENV_PATH = r"C:\Users\Megam\Documents\realpython\running_scripts\j\.env"
-
-# Load environment variables
 load_dotenv(DOTENV_PATH)
 
-# Retrieve variables from .env (if they exist)
 my_password = os.getenv('TOKEN')
-name = os.getenv("NAME")
-
+name = os.getenv('NAME')
 
 def update_env_variable(key: str, value: str):
-    """
-    Update an environment variable both in memory and in the .env file.
-    """
     os.environ[key] = value
     set_key(DOTENV_PATH, key, value)
 
-
-def check_password(password: str) -> bool:
+def check_password(user_input: str) -> bool:
     """
-    Check if the user-inputted password matches the one stored in .env.
+    Compare the user's plain-text password with the hashed password in .env
+    using passlib's bcrypt.verify.
     """
-    if password == my_password:
-        print('Correct Password! Access Granted!')
-        return True
-    else:
-        print('Incorrect password!')
+    if not my_password:
+        print("No hashed password found in .env. Set TOKEN first.")
         return False
+    # bcrypt.verify returns True or False
+    return bcrypt.checkpw(user_input.encode(), my_password.encode())
 
-
-def show_options() -> None:
+def change_password():
     """
-    Print the options available to the user once logged in.
+    Prompts for current password, and if verified, sets a new password
+    hashed with passlib's bcrypt.
     """
-    print('1) -----Enter new log entry-----')
-    print('2) -----Read previous logs-----')
-    print('3) -----Exit-----')
-    print('4) -----Help-----')
+    current = getpass.getpass("Enter your current password: ")
+    if check_password(current):
+        new_password = getpass.getpass("Enter your new password: ")
+        again = getpass.getpass("Enter your new password again: ")
+        if new_password == again:
+            # Hash the new password using passlib's bcrypt
+            hashed_str = bcrypt.hashpw(new_password)
+            update_env_variable("TOKEN", hashed_str)
+            print("Password is now changed and hashed!")
+        else:
+            print("Passwords did not match! Try again.")
+    else:
+        print("Password not changed.")
 
-
-def show_all_options() -> None:
-    """
-    Show the full options list (including changing name/password).
-    """
-    show_options()
-    print('5) -----Change password-----')
-    print('6) -----Change name-----')
-
-
-def print_starting_message() -> None:
-    """
-    Print a welcome banner showing the current user’s name from .env.
-    """
-    # Fallback if NAME isn't set
-    display_name = name if name else "User"
-    print('**************************')
-    print(f"-------{display_name}'s Journal-------")
-    print('**************************\n')
-
-
-def create_new_entry(title: str, content: str, date: str):
-    """
-    Create a new journal entry and append it to the 'something.txt' file.
-    """
-    # Safely open the file with a 'with' statement
-    with open("something.txt", "a", encoding="utf-8") as text_file:
-        text_file.write('------------------------------------\n')
-        text_file.write(f'{title}\n')
-        text_file.write(f'date: {date}\n')
-        text_file.write(f'{content}\n')
-        text_file.write('------------------------------------\n')
-    print("New entry saved!")
-
-
-def read_the_diary():
-    """
-    Print out all entries from 'something.txt'.
-    """
-    if not os.path.isfile("something.txt"):
-        print("No diary entries yet. 'something.txt' not found.")
-        return
-
-    with open("something.txt", "r", encoding="utf-8") as text_file:
-        data = text_file.read().splitlines()
-        for line in data:
-            print(line)
-
-
-def save_entry_num() -> None:
-    """
-    Increments the count of entries stored in 'saves.txt' (used for tracking entry number).
-    """
-    # If the saves.txt file doesn't exist, create it with an initial '0'.
-    if not os.path.isfile("saves.txt"):
-        with open("saves.txt", "w") as f:
-            f.write("0")
-
-    with open("saves.txt", "r") as text_file:
-        data = text_file.read().strip()
-
-        # Safely convert to int (fallback to 0 if empty)
-        try:
-            current_num = int(data)
-        except ValueError:
-            current_num = 0
-
-    with open("saves.txt", "w") as text_file:
-        res = current_num + 1
-        text_file.write(str(res))
-
-
-def show_num_of_entries() -> None:
-    """
-    Print the number of entries stored in 'saves.txt'.
-    """
-    if not os.path.isfile("saves.txt"):
-        print("Number of entries: 0")
-        return
-
-    with open("saves.txt", "r") as text_file:
-        data = text_file.read().strip()
-        print(f'Number of entries: {data or "0"}')
-
-
-def change_name() -> None:
+def change_name():
     """
     Prompt the user for current password, then change the NAME variable in .env.
     """
@@ -139,31 +55,70 @@ def change_name() -> None:
     else:
         print("Name not changed.")
 
+def print_starting_message():
+    display_name = name if name else "User"
+    print('**************************')
+    print(f"-------{display_name}'s Journal-------")
+    print('**************************\n')
 
-def change_password() -> None:
-    """
-    Prompt user for current password, confirm, then change the TOKEN variable in .env.
-    """
-    current = getpass.getpass("Enter your current password: ")
-    if check_password(current):
-        new_password = getpass.getpass("Enter your new password: ")
-        again = getpass.getpass("Enter your new password again: ")
-        if new_password == again:
-            update_env_variable("TOKEN", new_password)
-            print("Password is now changed!")
-        else:
-            print("Passwords did not match! Try again.")
-    else:
-        print("Password not changed.")
+def show_options():
+    print('1) -----Enter new log entry-----')
+    print('2) -----Read previous logs-----')
+    print('3) -----Exit-----')
+    print('4) -----Help-----')
 
+def show_all_options():
+    show_options()
+    print('5) -----Change password-----')
+    print('6) -----Change name-----')
+
+def create_new_entry(title: str, content: str, date: str):
+    with open("something.txt", "a", encoding="utf-8") as text_file:
+        text_file.write('------------------------------------\n')
+        text_file.write(f'{title}\n')
+        text_file.write(f'date: {date}\n')
+        text_file.write(f'{content}\n')
+        text_file.write('------------------------------------\n')
+    print("New entry saved!")
+
+def read_the_diary():
+    if not os.path.isfile("something.txt"):
+        print("No diary entries yet. 'something.txt' not found.")
+        return
+
+    with open("something.txt", "r", encoding="utf-8") as text_file:
+        data = text_file.read().splitlines()
+        for line in data:
+            print(line)
+
+def save_entry_num():
+    if not os.path.isfile("saves.txt"):
+        with open("saves.txt", "w") as f:
+            f.write("0")
+
+    with open("saves.txt", "r") as text_file:
+        data = text_file.read().strip()
+        try:
+            current_num = int(data)
+        except ValueError:
+            current_num = 0
+
+    with open("saves.txt", "w") as text_file:
+        res = current_num + 1
+        text_file.write(str(res))
+
+def show_num_of_entries():
+    if not os.path.isfile("saves.txt"):
+        print("Number of entries: 0")
+        return
+
+    with open("saves.txt", "r") as text_file:
+        data = text_file.read().strip()
+        print(f'Number of entries: {data or "0"}')
 
 def main():
-    """
-    Main function: prompt for password, then let the user choose what to do.
-    """
-    # If there's no TOKEN in .env, warn user or prompt them to create one
     if not my_password:
-        print("No TOKEN set in .env! Please set TOKEN=somepassword in your .env file.")
+        print("No TOKEN set in .env! Please set TOKEN in your .env file (hashed or blank).")
         return
 
     password_attempt = getpass.getpass("Enter your password: ")
@@ -208,7 +163,6 @@ def main():
 
         else:
             print("Invalid choice. Try again or type 'help' for options.")
-
 
 if __name__ == "__main__":
     main()

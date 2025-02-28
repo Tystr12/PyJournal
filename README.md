@@ -4,10 +4,12 @@ A lightweight, password-protected, **terminal-based journaling application** wri
 
 ## Features
 
-- **Password-Protected**: Ensures only the correct user can access and modify entries.
+- **Password-Protected**:
+  - Uses **bcrypt** to store your password in a hashed form in the `.env` file.
+  - During login, your input is hashed and compared to the stored hash for verification.
 - **Simple Text Logs**: Entries are appended to a simple `.txt` file.
 - **Entry Counter**: Automatically tracks the total number of journal entries in `saves.txt`.
-- **Change Password/Name**: Update the stored `TOKEN` (password) or the `NAME` used in banners.
+- **Change Password/Name**: Update your hashed password (`TOKEN`) or the `NAME` used in banners.
 
 ## Requirements
 
