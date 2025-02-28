@@ -19,6 +19,15 @@ A lightweight, password-protected, **terminal-based journaling application** wri
 
 Use requirements.txt to install all dependencies to run PyJournal.
 
-'''python
+```bash
+# Create a virtual environment
+python -m venv my_venv
+
+# Activate the virtual environment (Windows)
+my_venv\Scripts\activate
+
+# Activate on Mac/Linux
+source my_venv/bin/activate
+
+# Install dependencies
 pip install -r requirements.txt
-'''
